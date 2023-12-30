@@ -22,7 +22,7 @@ const createStorageEngine = () => {
   });
 }
 
-export const uploadPost = (req, res, next) => {
+export const upload = (req, res, next) => {
   const multerUpload = multer({ storage: createStorageEngine() }).single("photo");
 
   multerUpload(req, res, (err) => {
