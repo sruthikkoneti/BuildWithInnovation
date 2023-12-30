@@ -20,9 +20,41 @@ export const Register = async (req, res, next) => {
         });
 
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully.' });
+        return res.status(201).json({ message: 'User registered successfully.' });
     } catch (ex) {
         next(ex);
+    }
+}
+
+export const Login=async(req,res)=>{
+    const { emailOrPhone, password } = req.body;
+
+    try {
+      let user;
+      if (!emailOrPhone || !password) {
+        return res.status(400).json({ success: false, message: 'Email or phone number and password are required.' });
+      }
+  
+      if (emailOrPhone.includes('@')) {
+        user = await User.findOne({ email: emailOrPhone });
+      } else {
+        user = await User.findOne({ phone_number: emailOrPhone });
+      }
+  
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found.' });
+      }
+  
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ success: false, message: 'Invalid password.' });
+      }
+  
+      const token = jwt.sign({ user_id: user._id }, process.env.JWT_SECRET, {expiresIn: 60*60});
+
+      return res.status(200).json({ token, user_id: user._id });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: 'Failed to login.' });
     }
 }
 
