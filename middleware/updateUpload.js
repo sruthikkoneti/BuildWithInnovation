@@ -6,27 +6,26 @@ import { v4 as uuidv4 } from 'uuid';
 const createStorageEngine = () => {
   return multer.diskStorage({
     destination: function (req, file, cb) {
-      const uploadDir = 'temp_uploads/';
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      const dir = `./file_uploads/${req.user.user_id}`;
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
       }
-      cb(null, uploadDir);
+      cb(null, dir);
     },
     filename: function (req, file, cb) {
       let fileName = uuidv4() + path.extname(file.originalname);
-      req.tempFilePath = `temp_uploads/${fileName}`.replace(/\\/g, '/');
+      req.filePath = `file_uploads/${req.user.user_id}/${fileName}`;
       cb(null, fileName);
-    }
+    },
   });
 }
 
-export const upload = (req, res, next) => {
+export const updateUpload = (req, res, next) => {
   const multerUpload = multer({ storage: createStorageEngine() }).single("profile_image");
 
   multerUpload(req, res, (err) => {
     if (err) {
       // Handle multer error
-      console.log(err)
       return res.status(500).send("File upload failed");
     }
     // File upload successful
