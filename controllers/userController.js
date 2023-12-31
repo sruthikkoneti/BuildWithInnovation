@@ -18,7 +18,11 @@ export const updateUserProfile = async (req, res, next) => {
     if (name) {
       user.name = name;
     }
-
+    if (password) {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+      user.password = hashedPassword;
+    }
     if (req.file) {
       if (user.profile_image) {
         await fsExtra.remove(user.profile_image);
