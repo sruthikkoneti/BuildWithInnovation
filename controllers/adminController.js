@@ -5,18 +5,18 @@ import * as fs from "fs";
 import path from "path";
 
 export const getAllUsers = async (req, res, next) => {
-    try {
-        const users = await User.find({ role: 'user' });
-    
-        return res.status(200).json({ success: true, users });
-      } catch (error) {
-        return res.status(500).json({ success: false, message: 'Failed to fetch users by role.' });
-      }
+  try {
+    const users = await User.find({ role: 'user' });
+
+    return res.status(200).json({ success: true, users });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch users by role.' });
+  }
 };
 
 export const createAdmin = async (req, res, next) => {
   try {
-    const { name, email, phone_number, password} = req.body;
+    const { name, email, phone_number, password } = req.body;
     const profile_image = req.tempFilePath ? req.tempFilePath : null;
 
     if (!name || !password) {
@@ -30,7 +30,7 @@ export const createAdmin = async (req, res, next) => {
       phone_number,
       profile_image,
       password: hashedPassword,
-      role:"admin"
+      role: "admin"
     });
 
     await newUser.save();
@@ -43,7 +43,7 @@ export const createAdmin = async (req, res, next) => {
     if (profile_image) {
       const newProfileImagePath = path.join(userDirectory, path.basename(profile_image));
       fs.renameSync(profile_image, newProfileImagePath);
-      const updatedProfileImagePath=newProfileImagePath.split('\\').join('/')
+      const updatedProfileImagePath = newProfileImagePath.split('\\').join('/')
       newUser.profile_image = updatedProfileImagePath
       await newUser.save();
     }
@@ -64,7 +64,6 @@ export const deleteUserById = async (req, res) => {
   try {
     const userIdToDelete = req.params.userID;
     // Find the user by ID and delete
-    console.log(userIdToDelete)
     const deletedUser = await User.findByIdAndDelete(userIdToDelete);
 
     if (!deletedUser) {
@@ -89,12 +88,56 @@ export const deleteAllUsers = async (req, res) => {
       const userId = user._id;
       const userFolderPath = `file_uploads/${userId}`;
       await fsExtra.remove(userFolderPath);
-      
+
       await user.deleteOne();
     }
 
     return res.status(200).json({ success: true, message: 'Users with role "user" and their folders deleted successfully.', deletedCount: usersToDelete.length });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to delete users.' });
+  }
+};
+
+
+export const modifyUserDetails = async (req, res) => {
+  try {
+    const { userID } = req.params; // Assuming userId is sent as a route parameter
+    const { name, email, phone_number, password } = req.body;
+    // Find the user by ID
+    const userToUpdate = await User.findById(userID);
+
+    if (!userToUpdate) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Modify user details if provided
+    if (name) {
+      userToUpdate.name = name;
+    }
+    if (email) {
+      userToUpdate.email = email;
+    }
+    if (phone_number) {
+      userToUpdate.phone_number = phone_number;
+    }
+    if (password) {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+      userToUpdate.password = hashedPassword;
+    }
+    if (req.file) {
+      if (userToUpdate.profile_image) {
+        await fsExtra.remove(userToUpdate.profile_image);
+      }
+      const newProfileImagePath = req.filePath;
+      userToUpdate.profile_image = newProfileImagePath;
+    }
+
+    // Save the updated user details
+    await userToUpdate.save();
+
+    return res.status(200).json({ success: true, message: 'User details updated successfully.', updatedUser: userToUpdate });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update user details.' });
   }
 };
