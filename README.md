@@ -50,6 +50,7 @@ Admin can modify any details of a user
 
 ```PATCH``` ```http://localhost:5000/api/admin/update-user/:userID```
 
+### Note that ```Bearer Token``` has to be sent for all the routes except registering and logging routes
 
 
 
