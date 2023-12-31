@@ -7,11 +7,24 @@ import fsExtra from 'fs-extra';
 
 export const Register = async (req, res, next) => {
   try {
-    const { name, email, phone_number, password, role } = req.body;
+    const { name, email, phone_number, password} = req.body;
     const profile_image = req.tempFilePath ? req.tempFilePath : null;
 
-    if (!name || !password || !role) {
+    if (!name || !password) {
       return res.status(400).json({ message: 'Name, password, and role are required.' });
+    }
+
+    let existingUser
+    if(email!==null && email!==''){
+      existingUser = await User.findOne({ email });
+    }
+    if (phone_number && phone_number.trim() !== ''){
+      existingUser = await User.findOne({ phone_number});
+    }
+
+    if (existingUser) {
+      await fsExtra.remove('temp_uploads')
+      return res.status(400).json({ message: 'User with this email or phone number already exists.' });
     }
     const salt = await bcrypt.genSalt()
     const hashedPassword = await bcrypt.hash(password, salt)
@@ -21,7 +34,7 @@ export const Register = async (req, res, next) => {
       phone_number,
       profile_image,
       password: hashedPassword,
-      role
+      role:"user"
     });
 
     await newUser.save();
@@ -44,7 +57,6 @@ export const Register = async (req, res, next) => {
     }
 
     return res.status(201).json({ message: 'User registered successfully.' });
-    // return res.status(201).json(newUser);
   } catch (ex) {
     next(ex);
   }
