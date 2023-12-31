@@ -34,7 +34,8 @@ export const Register = async (req, res, next) => {
     if (profile_image) {
       const newProfileImagePath = path.join(userDirectory, path.basename(profile_image));
       fs.renameSync(profile_image, newProfileImagePath);
-      newUser.profile_image = newProfileImagePath;
+      const updatedProfileImagePath=newProfileImagePath.split('\\').join('/')
+      newUser.profile_image = updatedProfileImagePath
       await newUser.save();
     }
 
@@ -69,10 +70,10 @@ export const Login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ success: false, message: 'Invalid password.' });
     }
+    
+    const token = jwt.sign({ user_id: user._id, role:user.role }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
 
-    const token = jwt.sign({ user_id: user._id }, process.env.JWT_SECRET, { expiresIn: 60 * 60 });
-
-    return res.status(200).json({ token, user_id: user._id });
+    return res.status(200).json({ token, user_id: user._id});
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to login.' });
   }
