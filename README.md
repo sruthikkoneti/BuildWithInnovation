@@ -3,7 +3,7 @@
 # Instructions for the API
 
 ## User Routes
-For registering
+For registering as a user
 
 ```POST``` ```http:localhost:5000/api/auth/register```
 
