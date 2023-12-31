@@ -4,8 +4,8 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import authRoutes from './routes/authRoutes.js'
-import userRoutes from './routes/userRoutes.js'
-import adminRoutes from './routes/adminRoutes.js'
+// import userRoutes from './routes/userRoutes.js'
+// import adminRoutes from './routes/adminRoutes.js'
 
 dotenv.config()
 const app = express()
@@ -17,8 +17,8 @@ app.use(cors())
 app.use('/file_uploads', express.static('file_uploads'));
 //ROUTES
 app.use("/api/auth",authRoutes)
-app.use("/api/user",userRoutes)
-app.use("/api/admin",adminRoutes)
+// app.use("/api/user",userRoutes)
+// app.use("/api/admin",adminRoutes)
 
 
 //MONGOOSE SETUP

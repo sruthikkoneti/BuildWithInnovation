@@ -1,10 +1,11 @@
 import express from "express"
-import { Login, Register } from "../controllers/authController"
+import { Login, Register } from "../controllers/authController.js"
+import { upload } from "../middleware/fileUpload.js"
 
 
 const router = express.Router()
 
-router.post("/register",Register)
+router.post("/register",upload,Register)
 router.post("/login",Login)
 
 
